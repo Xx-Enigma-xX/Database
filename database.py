@@ -28,11 +28,3 @@ class Database:
             fileObject = open("%s/%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer, i), "w")
             fileObject.write(self.variables[i])
             fileObject.close()
-
-me = Database("users", "hillcrestpaul0719")
-try:
-    print(me.variables['password'])
-except:
-    pass
-me.variables['password'] = "newPassword"
-me.save()
