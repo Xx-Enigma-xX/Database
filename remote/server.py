@@ -1,32 +1,62 @@
-import flask
+from flask import Flask
+from flask import request
+app = Flask(__name__)
+
+from flask import jsonify, make_response
+import time
+import sys
+import config
 
 import os
 import shutil
 
-class Database:
-    def __init__(self, databaseName, databaseContainer, databaseLocation="./database"):
-        self.databaseName = databaseName
-        self.databaseContainer = databaseContainer
-        self.databaseLocation = databaseLocation
-        self.variables = {}
-        try:
-            os.mkdir("%s/%s" % (self.databaseLocation, self.databaseName))
-        except:
-            pass
-        try:
-            os.mkdir("%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer))
-        except:
-            pass
-        for i in os.listdir("%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer)):
-            fileObject = open("%s/%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer, i), "r")
-            self.variables[i] = fileObject.read()
-            # eval("self.%s = '%s'" % (i, fileObject.read()))
-            fileObject.close()
+sys.path.insert(0, '..')
+from database import Database
 
-    def save(self):
-        shutil.rmtree("%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer))
-        os.mkdir("%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer))
-        for i in list(self.variables.keys()):
-            fileObject = open("%s/%s/%s/%s" % (self.databaseLocation, self.databaseName, self.databaseContainer, i), "w")
-            fileObject.write(self.variables[i])
-            fileObject.close()
+@app.route('/')
+def status():
+    try:
+        if request.headers['token'] == config.token:
+            authorized = True
+        else:
+            raise Exception("Incorrect token.")
+    except:
+        authorized = False
+    if authorized:
+        uptime = time.time() - startTime
+        response = {'type': 'Enigma Database', 'version': '2.0',
+        'uptime': uptime, 'error': None}
+        statusCode = 200
+    else:
+        response = {'type': 'Enigma Database', 'version': '???',
+        'uptime': '???', 'error': 'Unauthorized'}
+        statusCode = 401
+    return make_response(jsonify(response), statusCode)
+
+@app.route('/<databaseName>/<databaseContainer>')
+def vars():
+    try:
+        if request.headers['token'] == config.token:
+            authorized = True
+        else:
+            raise Exception("Incorrect token.")
+    except:
+        authorized = False
+    if authorized:
+        uptime = time.time() - startTime
+        response = {'type': 'Enigma Database', 'version': '2.0',
+        'uptime': uptime, 'error': None}
+        statusCode = 200
+    else:
+        response = {'type': 'Enigma Database', 'version': '???',
+        'uptime': '???', 'error': 'Unauthorized'}
+        statusCode = 401
+    return make_response(jsonify(response), statusCode)
+
+if __name__ == "__main__":
+    import ssl
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain('crts/public.crt', "crts/private.key")
+
+    startTime = time.time()
+    app.run(host=config.url, port=config.port, ssl_context=context)
