@@ -3,3 +3,5 @@ password
 remote/crts
 remote/test.py
 remote/config.py
+__pycache__
+*.pyc
