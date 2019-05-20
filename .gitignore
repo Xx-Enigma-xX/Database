@@ -1,7 +1,7 @@
-database
-password
 remote/crts
 remote/test.py
-remote/config.py
+config.py
 __pycache__
 *.pyc
+dist
+EDMC_hillcrestpaul0719.egg-info
