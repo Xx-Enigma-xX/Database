@@ -1,7 +1,9 @@
 remote/crts
 remote/test.py
+local_test.py
 config.py
 __pycache__
 *.pyc
 dist
 EDMC_hillcrestpaul0719.egg-info
+build

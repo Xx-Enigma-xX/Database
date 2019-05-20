@@ -8,12 +8,15 @@ class Database:
         self.databaseContainer = databaseContainer # Document name
         self.databaseLocation = databaseLocation # Credentials (Firebase Service Account JSON)
 
-        cred = credentials.Certificate(credentials)
-        firebase_admin.initialize_app(self.databaseLocation)
+        cred = credentials.Certificate(self.databaseLocation)
+        firebase_admin.initialize_app(cred)
         self.db = firestore.client()
 
-        self.fs_doc = db.collection(self.databaseName).document(self.databaseContainer)
+        self.fs_doc = self.db.collection(self.databaseName).document(self.databaseContainer)
         self.variables = self.fs_doc.get().to_dict()
+
+        if self.variables == None:
+            self.variables = {}
 
 
     def save(self):
