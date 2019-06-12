@@ -10,7 +10,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-firestore_credential = os.environ['FIRESTORE_CREDENTIAL']
+firestore_credential = os.environ['EDMC_FIRESTORE_DBLOCATION']
 
 class FirestoreDatabaseTest(unittest.TestCase):
     def setUp(self):
@@ -42,18 +42,18 @@ class FirestoreDatabaseTest(unittest.TestCase):
         del doc_ref
 
         # Retrieving through EDMC Firestore v1
-        testDatabase = Database('_test', '_test', firestore_credential)
+        testDatabase = Database('_test', '_test', firestore_credential + ":_test")
         self.assertEqual(testDatabase.variables['test'], self.test_data)
         del testDatabase
 
         # Modifying through EDMC Firestore v1
-        testDatabase = Database('_test', '_test', firestore_credential)
+        testDatabase = Database('_test', '_test', firestore_credential + ":_test")
         testDatabase.variables['test'] = self.test_data2
         testDatabase.save()
         del testDatabase
 
         # Retreving through Firebase API
-        doc_ref = db.collection(u'EDMC').document(u'_test').collection(u'_test').document(u'_test')
+        doc_ref = self.db.collection(u'EDMC').document(u'_test').collection(u'_test').document(u'_test')
         doc = doc_ref.get()
         self.assertEqual(self.test_data2, doc.to_dict()['test'])
 
