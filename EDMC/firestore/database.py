@@ -17,7 +17,7 @@ class Database:
             firebase_admin.initialize_app(cred)
         self.db = firestore.client()
 
-        self.fs_doc = self.db.collection(u"EDMC").document(self.databaseLocation.split(":")[-1]).collection(self.databaseName).document(self.databaseContainer)
+        self.fs_doc = self.db.collection(u"EDMC").document(self.databaseLocation[1]).collection(self.databaseName).document(self.databaseContainer)
         self.variables = self.fs_doc.get().to_dict()
 
         if self.variables == None:
