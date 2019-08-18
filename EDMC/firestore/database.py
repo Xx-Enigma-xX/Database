@@ -5,15 +5,20 @@ from firebase_admin import firestore
 import os
 
 class Database:
-    def __init__(self, databaseName, databaseContainer, databaseLocation=os.environ['EDMC_FIRESTORE_DBLOCATION']):
+    def __init__(self, databaseName, databaseContainer, databaseLocation=None):
         self.databaseName = databaseName # Collection name
         self.databaseContainer = databaseContainer # Document name
-        self.databaseLocation = databaseLocation # Credentials (Firebase Service Account JSON)
+        self.databaseLocation = databaseLocation # Tuple: (Firebase Service Account JSON, Database Name)
+
+        if self.databaseLocation == None:
+            self.databaseLocation = os.environ['EDMC_FIRESTORE_DBCRED'].split("//")
+        elif type(self.databaseLocation) == type(""):
+            self.databaseLocation = (os.environ['EDMC_FIRESTORE_DBCRED'], self.databaseLocation)
 
         try:
             app = firebase_admin.get_app()
         except ValueError as e:
-            cred = credentials.Certificate(firestore_credential)
+            cred = credentials.Certificate(self.databaseLocation[0])
             firebase_admin.initialize_app(cred)
         self.db = firestore.client()
 

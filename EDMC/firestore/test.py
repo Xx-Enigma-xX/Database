@@ -1,18 +1,20 @@
 # This test is yet to be written.
 
 import unittest
-from database import Database
-from importer import main as import_db
+from .database import Database
+from .exporter import main as export_db
+from .importer import main as import_db
 
 import uuid
 import logging
 
 import os
+import subprocess
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-firestore_credential = os.environ['EDMC_FIRESTORE_DBLOCATION']
+firestore_credential = os.environ['EDMC_FIRESTORE_DBCRED']
 
 def get_firestore_credentials(firestore_credential=firestore_credential):
     # Use a service account
@@ -85,7 +87,7 @@ class FirestoreDatabaseExportTest(unittest.TestCase):
         del testDatabase
 
         # Read through Firestore EDMC Exporter
-        exported_data = export((firestore_credential, "_test"))
+        exported_data = export_db((firestore_credential, "_test"))
         expected_exported_data = {
             "type": "database",
             "name": "_test",
@@ -141,12 +143,38 @@ class FirestoreDatabaseImportTest(unittest.TestCase):
                 }
             ]
         }
-        import_db(data_to_import, firestore_credential)
+        import_db(firestore_credential, data_to_import)
 
         # Read through EDMC Firestore
         testDatabase = Database('_test', '_test', (firestore_credential, "_test"))
         self.assertEqual(self.test_data, testDatabase.variables['test'])
 
+
+class FirestoreDatabaseSubcollectionRetreiverTest(unittest.TestCase):
+    def setUp(self):
+        # Setup credentials
+        self.db = get_firestore_credentials()
+
+        # Setup subcollections
+        self.db.collection(u'EDMC').document(u'_test').collection(u'_test1').document(u'_test').collection(u'_test3').document(u'_test').set({})
+        self.db.collection(u'EDMC').document(u'_test').collection(u'_test1').document(u'_test').collection(u'_test4').document(u'_test').set({})
+        self.db.collection(u'EDMC').document(u'_test').collection(u'_test2').document(u'_test').set({})
+
+    def tearDown(self):
+        # Clean up
+        self.db.collection(u'EDMC').document(u'_test').collection(u'_test1').document(u'_test').collection(u'_test3').document(u'_test').delete()
+        self.db.collection(u'EDMC').document(u'_test').collection(u'_test1').document(u'_test').collection(u'_test4').document(u'_test').delete()
+        self.db.collection(u'EDMC').document(u'_test').collection(u'_test2').document(u'_test').delete()
+
+    def test_retreiving_list_of_subcollections_two_levels_deep(self):
+        result = subprocess.run(['node', 'EDMC/firestore/get_subcollections.js', firestore_credential, 'EDMC/_test'], capture_output=True)
+        subcollections = result.stdout.decode("utf-8")[:-1].split(",")
+        self.assertEqual(subcollections, ['_test1', '_test2'])
+
+    def test_retreiving_list_of_subcollections_four_levels_deep(self):
+        result = subprocess.run(['node', 'EDMC/firestore/get_subcollections.js', firestore_credential, 'EDMC/_test/_test1/_test'], capture_output=True)
+        subcollections = result.stdout.decode("utf-8")[:-1].split(",")
+        self.assertEqual(subcollections, ['_test3', '_test4'])
 
 if __name__ == '__main__':
     unittest.main()

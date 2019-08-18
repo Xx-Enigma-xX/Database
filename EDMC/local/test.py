@@ -1,6 +1,6 @@
 import unittest
-from database import Database
-from exporter import main as export
+from .database import Database
+from .exporter import main as export
 
 import random
 import string
