@@ -1,6 +1,7 @@
 import unittest
 from .database import Database
-from .exporter import main as export
+from .exporter import main as export_db
+from .importer import main as import_db
 
 import random
 import string
@@ -67,7 +68,7 @@ class LocalDatabaseExportTest(unittest.TestCase):
         del testDatabase
 
         # Read through Local EDMC Exporter
-        exported_data = export("./testDatabase")
+        exported_data = export_db("./testDatabase")
         expected_exported_data = {
             "type": "database",
             "name": "testDatabase",
@@ -88,6 +89,46 @@ class LocalDatabaseExportTest(unittest.TestCase):
             ]
         }
         self.assertEqual(exported_data, expected_exported_data)
+
+class LocalDatabaseImportTest(unittest.TestCase):
+    def setUp(self):
+        # Setup database
+        os.makedirs('./testDatabase')
+
+        # Get random string for user data
+        self.test_data = randomString(12)
+
+    def tearDown(self):
+        # Clean up
+        shutil.rmtree("./testDatabase")
+
+    def test_save_through_importer_and_read_with_EDMC(self):
+        data_to_import = {
+            "type": "database",
+            "name": "_test",
+            "data": [
+                {
+                    "type": "collection",
+                    "name": "_test",
+                    "data": [
+                        {
+                            "type": "document",
+                            "name": "_test",
+                            "data": {
+                                "test": self.test_data
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Import Database
+        import_db('./testDatabase', data_to_import)
+
+        # Read through EDMC Local Database
+        testDatabase = Database('_test', '_test', './testDatabase')
+        self.assertEqual(self.test_data, testDatabase.variables['test'])
 
 if __name__ == '__main__':
     unittest.main()

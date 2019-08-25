@@ -1,5 +1,3 @@
-# This test is yet to be written.
-
 import unittest
 from .database import Database
 from .exporter import main as export_db
